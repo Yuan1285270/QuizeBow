@@ -4,33 +4,39 @@
     <meta charset="UTF-8">
     <title>小安的挑戰</title>
     <style>
-        body {
+        html, body {
             margin: 0;
+            padding: 0;
             background-color: #00407C;
             font-family: "Noto Sans TC", "Microsoft JhengHei", "PingFang TC", sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
+            height: 100vh;
+            overflow: hidden;
         }
 
         .options {
             display: flex;
             justify-content: center;
-            gap: 60px;
-            margin-top: 50px;
+            gap: 6vw;
+            margin-top: 5vh;
         }
 
         .option img {
-            width: 100px;
-            height: 100px;
-            border-radius: 20px;
+            width: 10vw;
+            height: 10vw;
+            max-width: 100px;
+            max-height: 100px;
+            border-radius: 1.5vw;
             transition: filter 0.3s ease;
         }
 
         #arrow {
-            width: 100px;
+            width: 10vw;
+            max-width: 100px;
             position: absolute;
-            bottom: 40px;
+            bottom: 5vh;
             left: 50%;
             transform: translateX(-50%) rotate(0deg);
             transition: transform 0.2s ease-out;
@@ -39,35 +45,36 @@
         .question-box {
             background: white;
             color: #333;
-            padding: 30px;
-            border-radius: 30px;
-            max-width: 600px;
-            margin-top: 60px;
+            padding: 3vh;
+            border-radius: 2vh;
+            max-width: 90vw;
+            margin-top: 4vh;
+            margin-bottom: 12vh;
             line-height: 1.8;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
         }
 
         .shoot-btn {
-            margin-top: 20px;
+            margin-top: 2vh;
             background-color: #CDE7FF;
             border: none;
-            border-radius: 15px;
+            border-radius: 2vh;
             font-size: 1.3rem;
-            padding: 10px 30px;
+            padding: 1vh 3vh;
             font-weight: bold;
             cursor: pointer;
         }
 
         #flying-arrow {
             position: absolute;
-            width: 20px;
-            bottom: 40px;
+            width: 2vw;
+            max-width: 20px;
+            bottom: 5vh;
             left: 50%;
             transform: translateX(-50%) rotate(0deg);
             transition: bottom 0.8s linear, left 0.8s linear;
             z-index: 10;
         }
-
     </style>
 </head>
 <body>
@@ -157,50 +164,35 @@
 
     function shoot() {
         const correct = questions[currentQuestion].correct;
-
-        // 根據 currentAngle 判定選項（左右範圍）
         let hit = "none";
         if (currentAngle < -15) hit = "A";
         else if (currentAngle > 15) hit = "C";
         else hit = "B";
 
-
-        // 射中選項變灰
         document.getElementById(`opt${hit}`).style.filter = "grayscale(100%) brightness(0.6)";
 
-        // 🏹 飛箭動畫處理
-
         const arrow = document.getElementById("flying-arrow");
-
-        // 角度轉成弧度
         const rad = currentAngle * Math.PI / 180;
-        const distance = 5000; // 飛行距離，可自行調整
-
-        // 算出飛行終點的位移量
+        const distance = window.innerHeight * 0.8;
         const offsetX = Math.sin(rad) * distance;
         const offsetY = Math.cos(rad) * distance;
 
-        // Step 1: 初始位置和角度（不動畫）
         arrow.style.transition = "none";
-        arrow.style.bottom = "130px";
+        arrow.style.bottom = "5vh";
         arrow.style.left = "50%";
         arrow.style.display = "block";
-        arrow.style.transform = `translateX(-120%) rotate(${currentAngle}deg)`;
+        arrow.style.transform = `translateX(-50%) rotate(${currentAngle}deg)`;
 
-        // Step 2: 強制重新渲染（讓動畫生效）
         void arrow.offsetWidth;
 
-        // Step 3: 設定動畫 + 最終位置（沿著角度飛）
         arrow.style.transition = "bottom 0.8s ease, left 0.8s ease";
-        arrow.style.bottom = `${130 + offsetY}px`;
+        arrow.style.bottom = `calc(5vh + ${offsetY}px)`;
         arrow.style.left = `calc(50% + ${offsetX}px)`;
 
-        // Step 4: 等待動畫完成 → 處理結果
         setTimeout(() => {
-            // 重設箭
             arrow.style.display = "none";
             arrow.style.left = "50%";
-            arrow.style.bottom = "130px";
+            arrow.style.bottom = "5vh";
 
             if (hit === correct) {
                 alert("🎯 答對了！");
@@ -215,9 +207,6 @@
             }
         }, 800);
     }
-
-
-
 
     function rotateArrow() {
         const arrow = document.getElementById("arrow");
