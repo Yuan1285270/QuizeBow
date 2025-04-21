@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Homepage</title>
+    <style>
+        body {
+            background-color: #00407C;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: "Noto Sans TC", "Microsoft JhengHei", "PingFang TC", sans-serif;
+
+        }
+        .container {
+            display: flex;
+            flex-direction: column;    /* 垂直排列 */
+            align-items: center;       /* 水平置中 */
+            gap: 20px;                 /* 卡片與按鈕的空隙 */
+        }
+
+        .card {
+            background-color: white;    /* 白色底 */
+            border-radius: 40px;        /* 圓角 */
+            padding: 40px;              /* 內距 */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            justify-content: center;
+            max-width: 600px;
+            width: 90%;
+            max-height: 800px;
+            height: 100%;
+            font-size: 1.5rem;  /* 👈 加這行就調整卡片內的字體大小 */
+            line-height: 1.8;
+        }
+
+        .start_but{
+            display: inline-block;
+            color: #173b71;
+            font-size: 1.5rem;
+            padding: 10px 30px;
+            border-radius: 15px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 30px;
+            background: linear-gradient(to bottom, #CDE7FF, #7B8A99);
+        }
+
+        .start_but:hover {
+            background: linear-gradient(to bottom, #d3e1f8, #bcd2f4);
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <div class="card">
+        <p>🎓 小安：</p>
+        <p>剛進入一家創新公司當實習生，個性好奇、願意學習，但對組織運作還不太了解。</p>
+
+        <p>👩‍🏫 主管小慧：</p>
+        <p>一位推動「學習型組織」的領導者，鼓勵創新與團隊合作。你的任務：幫助小安在各種職場情境中做出正確的選擇，逐步了解「五項修煉」的精髓！</p>
+    </div>
+<a href = "game.html" class="start_but">Start</a>
+</div>
+</body>
+</html>

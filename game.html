@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>小安的挑戰</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #00407C;
+            font-family: "Noto Sans TC", "Microsoft JhengHei", "PingFang TC", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .options {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            margin-top: 50px;
+        }
+
+        .option img {
+            width: 100px;
+            height: 100px;
+            border-radius: 20px;
+            transition: filter 0.3s ease;
+        }
+
+        #arrow {
+            width: 100px;
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%) rotate(0deg);
+            transition: transform 0.2s ease-out;
+        }
+
+        .question-box {
+            background: white;
+            color: #333;
+            padding: 30px;
+            border-radius: 30px;
+            max-width: 600px;
+            margin-top: 60px;
+            line-height: 1.8;
+            font-size: 1.1rem;
+        }
+
+        .shoot-btn {
+            margin-top: 20px;
+            background-color: #CDE7FF;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.3rem;
+            padding: 10px 30px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #flying-arrow {
+            position: absolute;
+            width: 20px;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%) rotate(0deg);
+            transition: bottom 0.8s linear, left 0.8s linear;
+            z-index: 10;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="options">
+    <div class="option"><img src="images/A.png" id="optA"></div>
+    <div class="option"><img src="images/B.png" id="optB"></div>
+    <div class="option"><img src="images/C.png" id="optC"></div>
+</div>
+
+<img src="images/whole_bow.png" id="arrow">
+<img src="images/arrow_only.png" id="flying-arrow" style="display: none;">
+
+<button class="shoot-btn" onclick="shoot()">射擊！</button>
+
+<div class="question-box" id="question-text">
+    <!-- 題目文字會在這裡被 JS 插入 -->
+</div>
+
+<script>
+    const questions = [
+        {
+            question: `🎮 關卡1：小安第一天上班觀察公司運作\n小安發現部門之間常因為流程不清楚而互相推卸責任。請問你會怎麼建議他？\nA. 建議每個部門只專注自己範圍，不管其他\nB. 請主管幫他換部門\nC. 嘗試從整體流程去理解各部門之間的關聯\n🔍 對應修煉：系統思考`,
+            correct: "C",
+            options: ["images/A.png", "images/B.png", "images/C.png"]
+        },
+        {
+            question: `🎮 關卡2：工作遇到瓶頸，小安想學新技能\n小安對資料分析很有興趣，想利用下班時間進修，但同事笑他太認真。你會怎麼建議他？\nA. 為了合群還是先別學\nB. 持續學習，不斷自我提升\nC. 請主管要求大家一起學\n🔍 對應修煉：個人精進`,
+            correct: "B",
+            options: ["images/A.png", "images/B.png", "images/C.png"]
+        },
+        {
+            question: `🎮 關卡3：開會時，小安不敢說出想法\n主管請大家針對一個提案給建議，小安認為提案可能會有風險，但怕自己講錯被笑。你會怎麼幫他？\nA. 不說話最安全\nB. 表達自己的觀點，幫助大家看得更全面\nC. 先觀察誰最有權力，再決定說什麼\n🔍 對應修煉：團隊學習`,
+            correct: "B",
+            options: ["images/A.png", "images/B.png", "images/C.png"]
+        },
+        {
+            question: `🎮 關卡4：小安發現大家總是照舊方式處理事情\n即使問題一直出現，同事還是說「以前都是這樣做的」。你會建議小安怎麼做？\nA. 鼓勵大家重新思考背後的假設和做法\nB. 默默接受規則\nC. 跳過流程，自己搞定比較快\n🔍 對應修煉：心智模式`,
+            correct: "A",
+            options: ["images/A.png", "images/B.png", "images/C.png"]
+        },
+        {
+            question: `🎮 關卡5：公司要推動新目標，小安被邀請參與規劃會議\n在會議中，小安第一次參與「共同願景」的討論。你會建議他？\nA. 積極分享自己對未來的想像與貢獻\nB. 只聽上面怎麼說就好\nC. 先聽完再照單全收\n🔍 對應修煉：建立共同願景`,
+            correct: "A",
+            options: ["images/A.png", "images/B.png", "images/C.png"]
+        },
+        {
+            question: `🎮 關卡6：小安發現某件事總是發生同樣錯誤\n他畫出流程圖後，發現問題出在一開始的設計就有缺陷。這種分析方式屬於什麼？\nA. 責怪當事人\nB. 用KPI壓力逼大家表現\nC. 利用因果循環找出根本原因\n🔍 對應修煉：系統思考工具`,
+            correct: "C",
+            options: ["images/A.png", "images/B.png", "images/C.png"]
+        },
+        {
+            question: `🎮 關卡7：同事對改變感到害怕\n在會議中，有同事說：「反正每次改都沒用，還是照以前就好。」小安應該怎麼做？\nA. 附和他，省事\nB. 問問對方過去的經驗，並一起討論可能的新方法\nC. 不理他，自己先做自己的\n🔍 對應修煉：心智模式的覺察與挑戰`,
+            correct: "B",
+            options: ["images/A.png", "images/B.png", "images/C.png"]
+        },
+        {
+            question: `🎮 關卡8：主管問小安：你覺得我們公司未來可以怎麼成長？\n你會建議小安怎麼回答才符合「學習型組織」的精神？\nA. 提出創新想法，並連結公司的願景\nB. 回答「我都可以」比較安全\nC. 推薦外面成功的公司讓主管參考就好\n🔍 對應修煉：共同願景＋個人參與`,
+            correct: "A",
+            options: ["images/A.png", "images/B.png", "images/C.png"]
+        },
+        {
+            question: `🎮 關卡9：小安被分配到一個跨部門專案\n一開始大家意見不合，小安想讓合作更有效率。你會怎麼建議他？\nA. 建議拆組，各做各的\nB. 鼓勵大家聆聽彼此觀點，一起學習\nC. 自己偷偷完成所有工作避免衝突\n🔍 對應修煉：團隊學習`,
+            correct: "B",
+            options: ["images/A.png", "images/B.png", "images/C.png"]
+        },
+        {
+            question: `🎮 關卡10：專案收尾，小安學到很多東西\n主管請他做一次回顧報告。你會建議他怎麼呈現最有價值？\nA. 只報告成功的部分\nB. 只寫流程讓大家參考\nC. 分享整體過程、學習到的觀點與改善建議\n🔍 對應修煉：整合五項修煉概念，實踐反思與學習`,
+            correct: "C",
+            options: ["images/A.png", "images/B.png", "images/C.png"]
+        }
+    ];
+
+    let currentQuestion = 0;
+    let currentAngle = 0;
+    let direction = 1;
+
+    function loadQuestion() {
+        const q = questions[currentQuestion];
+        document.getElementById("question-text").innerText = q.question;
+        ["A", "B", "C"].forEach((opt, i) => {
+            const img = document.getElementById(`opt${opt}`);
+            img.src = q.options[i];
+            img.style.filter = "none";
+        });
+    }
+
+    function shoot() {
+        const correct = questions[currentQuestion].correct;
+
+        // 根據 currentAngle 判定選項（左右範圍）
+        let hit = "none";
+        if (currentAngle < -15) hit = "A";
+        else if (currentAngle > 15) hit = "C";
+        else hit = "B";
+
+        // 射中選項變灰
+        document.getElementById(`opt${hit}`).style.filter = "grayscale(100%) brightness(0.6)";
+
+        // 🏹 飛箭動畫處理
+        const arrow = document.getElementById("flying-arrow");
+
+        // 角度轉成弧度
+        const rad = currentAngle * Math.PI / 180;
+        const distance = 330; // 飛行距離，可自行調整
+
+        // 算出飛行終點的位移量
+        const offsetX = Math.sin(rad) * distance;
+        const offsetY = Math.cos(rad) * distance;
+
+        // Step 1: 初始位置和角度（不動畫）
+        arrow.style.transition = "none";
+        arrow.style.bottom = "130px";
+        arrow.style.left = "50%";
+        arrow.style.display = "block";
+        arrow.style.transform = `translateX(-120%) rotate(${currentAngle}deg)`;
+
+        // Step 2: 強制重新渲染（讓動畫生效）
+        void arrow.offsetWidth;
+
+        // Step 3: 設定動畫 + 最終位置（沿著角度飛）
+        arrow.style.transition = "bottom 0.8s ease, left 0.8s ease";
+        arrow.style.bottom = `${130 + offsetY}px`;
+        arrow.style.left = `calc(50% + ${offsetX}px)`;
+
+        // Step 4: 等待動畫完成 → 處理結果
+        setTimeout(() => {
+            // 重設箭
+            arrow.style.display = "none";
+            arrow.style.left = "50%";
+            arrow.style.bottom = "130px";
+
+            if (hit === correct) {
+                alert("🎯 答對了！");
+                currentQuestion++;
+                if (currentQuestion < questions.length) {
+                    loadQuestion();
+                } else {
+                    alert("🌟 你已完成所有題目！");
+                }
+            } else {
+                alert("😅 沒中，再試一次！");
+            }
+        }, 800);
+    }
+
+
+
+
+    function rotateArrow() {
+        const arrow = document.getElementById("arrow");
+        currentAngle += direction * 1.5;
+        if (currentAngle >= 30 || currentAngle <= -30) direction *= -1;
+        arrow.style.transform = `translateX(-50%) rotate(${currentAngle}deg)`;
+    }
+
+    setInterval(rotateArrow, 30);
+    window.onload = loadQuestion;
+</script>
+
+</body>
+</html>
