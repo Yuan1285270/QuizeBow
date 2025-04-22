@@ -7,7 +7,7 @@
         html, body {
             margin: 0;
             padding: 0;
-            background-color: #00407C;
+            background-color: #52087D;
             font-family: "Noto Sans TC", "Microsoft JhengHei", "PingFang TC", sans-serif;
             display: flex;
             flex-direction: column;
@@ -21,15 +21,25 @@
             justify-content: center;
             gap: 6vw;
             margin-top: 5vh;
+            flex-wrap: nowrap;
         }
-
         .option img {
             width: 10vw;
             height: 10vw;
             max-width: 100px;
             max-height: 100px;
-            border-radius: 1.5vw;
-            transition: filter 0.3s ease;
+            border-radius: 15px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+            transition: transform 0.2s ease, filter 0.3s ease;
+        }
+
+        .option img:hover {
+            transform: scale(1.05);
         }
 
         #arrow {
@@ -43,15 +53,21 @@
         }
 
         .question-box {
-            background: white;
-            color: #333;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
             padding: 3vh;
-            border-radius: 2vh;
             max-width: 90vw;
             margin-top: 4vh;
             margin-bottom: 12vh;
             line-height: 1.8;
             font-size: 1.2rem;
+            color: white;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            white-space: pre-wrap;
+            word-break: break-word;
         }
 
         .shoot-btn {
@@ -72,9 +88,76 @@
             bottom: 5vh;
             left: 50%;
             transform: translateX(-50%) rotate(0deg);
-            transition: bottom 0.8s linear, left 0.8s linear;
+            transition: bottom 1.5s ease, left 1.5s ease;
             z-index: 10;
         }
+
+        #toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: radial-gradient(circle at center, #fff 20%, #ffd700 80%);
+            color: #4B0082;
+            padding: 4vh 6vw;
+            font-size: 3rem;
+            font-weight: bold;
+            border-radius: 40px;
+            box-shadow: 0 12px 40px rgba(255, 255, 0, 0.6);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s linear 0.3s;
+
+            /* ✅ 這三個保證 toast 永遠在上面 */
+            z-index: 999999; /* 超級高 */
+            pointer-events: none; /* 不會擋住點擊 */
+        }
+
+
+        .toast-show {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1.3);
+            animation: toastPulse 0.5s ease-in-out forwards;
+        }
+
+
+
+
+        @keyframes toastPulse {
+            0% { transform: translate(-50%, -50%) scale(1.3); }
+            50% { transform: translate(-50%, -50%) scale(1.5); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        @keyframes hitEffect {
+            0%   { transform: scale(1) rotate(0deg); filter: brightness(1); }
+            20%  { transform: scale(1.3) rotate(-3deg); filter: brightness(1.5); }
+            40%  { transform: scale(1.3) rotate(3deg); filter: brightness(2); }
+            60%  { transform: scale(1.1) rotate(-2deg); filter: brightness(1.4); }
+            80%  { transform: scale(1.1) rotate(2deg); filter: brightness(1.2); }
+            100% { transform: scale(1) rotate(0deg); filter: brightness(1); }
+        }
+
+        .explode-hit {
+            animation: hitEffect 0.5s ease;
+            z-index: 1000;
+        }
+
+        @keyframes toastPop {
+            0% {
+                transform: translate(-50%, -50%) scale(0.8);
+                opacity: 0;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.2);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -85,6 +168,8 @@
     <div class="option"><img src="images/C.png" id="optC"></div>
 </div>
 
+
+
 <img src="images/whole_bow.png" id="arrow">
 <img src="images/arrow_only.png" id="flying-arrow" style="display: none;">
 
@@ -94,7 +179,13 @@
     <!-- 題目文字會在這裡被 JS 插入 -->
 </div>
 
+<audio id="bgm" src="audio/bgm.mp3" autoplay loop></audio>
+<audio id="sfx-hit" src="audio/hit.mp3"></audio>
+<audio id="sfx-miss" src="audio/miss.mp3"></audio>
+<audio id="sfx-shoot" src="audio/shoot.mp3"></audio>
+<div id="toast" style="visibility: hidden;"></div>
 <script>
+
     const questions = [
         {
             question: `🎮 關卡1：小安第一天上班觀察公司運作\n小安發現部門之間常因為流程不清楚而互相推卸責任。請問你會怎麼建議他？\nA. 建議每個部門只專注自己範圍，不管其他\nB. 請主管幫他換部門\nC. 嘗試從整體流程去理解各部門之間的關聯\n🔍 對應修煉：系統思考`,
@@ -163,14 +254,27 @@
     }
 
     function shoot() {
+        document.getElementById("sfx-shoot").play();
         const correct = questions[currentQuestion].correct;
         let hit = "none";
         if (currentAngle < -15) hit = "A";
         else if (currentAngle > 15) hit = "C";
         else hit = "B";
 
-        document.getElementById(`opt${hit}`).style.filter = "grayscale(100%) brightness(0.6)";
+        // 替換圖片為命中圖或錯誤圖
+        setTimeout(() => {
+            if (hit === correct) {
+                document.getElementById(`opt${hit}`).src = `images/${hit}_hit.png`;
+                document.getElementById("sfx-hit").play();  // ✅ 播放在這裡
+            } else {
+                document.getElementById(`opt${hit}`).src = `images/${hit}_miss.png`;
+                document.getElementById("sfx-miss").play(); // ✅ 播放在這裡
+            }
+            const hitImg = document.getElementById(`opt${hit}`);
+            hitImg.classList.add("explode-hit");
+            setTimeout(() => hitImg.classList.remove("explode-hit"), 500);
 
+        }, 800);
         const arrow = document.getElementById("flying-arrow");
         const rad = currentAngle * Math.PI / 180;
         const distance = window.innerHeight * 0.8;
@@ -185,7 +289,7 @@
 
         void arrow.offsetWidth;
 
-        arrow.style.transition = "bottom 0.8s ease, left 0.8s ease";
+        arrow.style.transition = "bottom 1.5s ease, left 1.5s ease";
         arrow.style.bottom = `calc(5vh + ${offsetY}px)`;
         arrow.style.left = `calc(50% + ${offsetX}px)`;
 
@@ -195,15 +299,18 @@
             arrow.style.bottom = "5vh";
 
             if (hit === correct) {
-                alert("🎯 答對了！");
+                showToast("🎯 答對了！");
                 currentQuestion++;
-                if (currentQuestion < questions.length) {
-                    loadQuestion();
-                } else {
-                    alert("🌟 你已完成所有題目！");
-                }
+                setTimeout(() => {
+                    currentQuestion++;
+                    if (currentQuestion < questions.length) {
+                        loadQuestion();
+                    } else {
+                        showToast("🌟 你已完成所有題目！");
+                    }
+                }, 3000); // 換圖完過 1 秒再換題目
             } else {
-                alert("😅 沒中，再試一次！");
+                showToast("😅 沒中，再試一次！");
             }
         }, 800);
     }
@@ -217,6 +324,44 @@
 
     setInterval(rotateArrow, 30);
     window.onload = loadQuestion;
+
+    function showToast(message) {
+        const toast = document.getElementById("toast");
+
+        toast.innerText = message;
+        toast.style.position = "fixed";
+        toast.style.top = "50%";
+        toast.style.left = "50%";
+        toast.style.transform = "translate(-50%, -50%) scale(1)";
+        toast.style.background = "gold";
+        toast.style.color = "black";
+        toast.style.padding = "2vh 4vw";
+        toast.style.fontSize = "2rem";
+        toast.style.fontWeight = "bold";
+        toast.style.borderRadius = "20px";
+        toast.style.zIndex = "9999999";
+        toast.style.opacity = "1";
+        toast.style.visibility = "visible";
+        toast.style.transition = "opacity 0.5s ease";
+        toast.style.animation = "toastPop 0.6s ease";
+
+        // 🌟 延長顯示時間到 2.5 秒
+        setTimeout(() => {
+            toast.style.opacity = "0";
+        }, 2500);
+
+        setTimeout(() => {
+            toast.style.visibility = "hidden";
+            toast.style.animation = ""; // 清除動畫，避免下次不觸發
+        }, 3000);
+    }
+
+
+
+
+
+
+
 </script>
 
 </body>
