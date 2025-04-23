@@ -163,9 +163,9 @@
 <body>
 
 <div class="options">
-    <div class="option"><img src="images/A.png" id="optA"></div>
-    <div class="option"><img src="images/B.png" id="optB"></div>
-    <div class="option"><img src="images/C.png" id="optC"></div>
+    <div class="option"><img src="images/A.png?${Date.now()}" id="optA"></div>
+    <div class="option"><img src="images/B.png?${Date.now()}" id="optB"></div>
+    <div class="option"><img src="images/C.png?${Date.now()}" id="optC"></div>
 </div>
 
 
@@ -257,17 +257,17 @@
         document.getElementById("sfx-shoot").play();
         const correct = questions[currentQuestion].correct;
         let hit = "none";
-        if (currentAngle < -15) hit = "A";
-        else if (currentAngle > 15) hit = "C";
+        if (currentAngle < -10) hit = "A";
+        else if (currentAngle > 10) hit = "C";
         else hit = "B";
 
         // 替換圖片為命中圖或錯誤圖
         setTimeout(() => {
             if (hit === correct) {
-                document.getElementById(`opt${hit}`).src = `images/${hit}_hit.png`;
+                document.getElementById(`opt${hit}`).src = `images/${hit}_hit.png?${Date.now()}`;
                 document.getElementById("sfx-hit").play();  // ✅ 播放在這裡
             } else {
-                document.getElementById(`opt${hit}`).src = `images/${hit}_miss.png`;
+                document.getElementById(`opt${hit}`).src = `images/${hit}_miss.png?${Date.now()}`;
                 document.getElementById("sfx-miss").play(); // ✅ 播放在這裡
             }
             const hitImg = document.getElementById(`opt${hit}`);
@@ -300,7 +300,6 @@
 
             if (hit === correct) {
                 showToast("🎯 答對了！");
-                currentQuestion++;
                 setTimeout(() => {
                     currentQuestion++;
                     if (currentQuestion < questions.length) {
@@ -355,12 +354,6 @@
             toast.style.animation = ""; // 清除動畫，避免下次不觸發
         }, 3000);
     }
-
-
-
-
-
-
 
 </script>
 
