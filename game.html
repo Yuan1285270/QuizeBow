@@ -4,7 +4,12 @@
     <meta charset="UTF-8">
     <title>小安的挑戰</title>
     <style>
-        html, body {
+        html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+        body {
             margin: 0;
             padding: 0;
             background-color: #52087D;
@@ -14,6 +19,10 @@
             align-items: center;
             height: 100vh;
             overflow: hidden;
+            background-image: url('images/office_background.png'); /* 換成你自己的圖片路徑 */
+            background-size: cover;  /* 圖片覆蓋整個畫面 */
+            background-position: center center; /* 置中 */
+            background-repeat: no-repeat; /* 不要重複 */
         }
 
         .options {
@@ -43,8 +52,8 @@
         }
 
         #arrow {
-            width: 10vw;
-            max-width: 100px;
+            width: 17vw;
+            max-width: 170px;
             position: absolute;
             bottom: 5vh;
             left: 50%;
