@@ -62,10 +62,10 @@
         }
 
         .question-box {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.3); /* 白色半透明 */
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.4);
             border-radius: 20px;
             padding: 3vh;
             max-width: 90vw;
@@ -73,11 +73,13 @@
             margin-bottom: 12vh;
             line-height: 1.8;
             font-size: 1.2rem;
-            color: white;
+            color: #ffffff; /* 字體完全白色 */
+            text-shadow: 0 0 5px rgba(0,0,0,0.5); /* 加陰影讓字更清楚 */
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
             white-space: pre-wrap;
             word-break: break-word;
         }
+
 
         .shoot-btn {
             margin-top: 2vh;
@@ -90,16 +92,25 @@
             cursor: pointer;
         }
 
-        #flying-arrow {
+        #arrow-wrapper {
             position: absolute;
-            width: 2vw;
-            max-width: 20px;
             bottom: 5vh;
             left: 50%;
-            transform: translateX(-50%) rotate(0deg);
+            transform: translateX(-50%);
             transition: bottom 1.5s ease, left 1.5s ease;
             z-index: 10;
         }
+
+        #flying-arrow {
+            width: 2vw;
+            max-width: 20px;
+            transform: rotate(0deg);
+            display: block;
+            /* ❌ 移除旋轉動畫：這是關鍵 */
+            /* transition: transform 1.5s ease; */
+        }
+
+
 
         #toast {
             position: fixed;
@@ -130,7 +141,14 @@
             animation: toastPulse 0.5s ease-in-out forwards;
         }
 
-
+        #arrow-wrapper {
+            position: absolute;
+            bottom: 5vh;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: bottom 1.5s ease, left 1.5s ease;
+            z-index: 10;
+        }
 
 
         @keyframes toastPulse {
@@ -172,17 +190,18 @@
 <body>
 
 <div class="options">
-    <div class="option"><img src="images/A.png?${Date.now()}" id="optA"></div>
-    <div class="option"><img src="images/B.png?${Date.now()}" id="optB"></div>
-    <div class="option"><img src="images/C.png?${Date.now()}" id="optC"></div>
+    <div class="option"><img src="images/A.png" id="optA" onclick="shoot('A')"></div>
+    <div class="option"><img src="images/B.png" id="optB" onclick="shoot('B')"></div>
+    <div class="option"><img src="images/C.png" id="optC" onclick="shoot('C')"></div>
 </div>
 
 
 
 <img src="images/whole_bow.png" id="arrow">
-<img src="images/arrow_only.png" id="flying-arrow" style="display: none;">
 
-<button class="shoot-btn" onclick="shoot()">射擊！</button>
+<div id="arrow-wrapper">
+    <img src="images/arrow_only.png" id="flying-arrow" style="display: none;">
+</div>
 
 <div class="question-box" id="question-text">
     <!-- 題目文字會在這裡被 JS 插入 -->
@@ -262,52 +281,49 @@
         });
     }
 
-    function shoot() {
+    function shoot(hit) {
         document.getElementById("sfx-shoot").play();
         const correct = questions[currentQuestion].correct;
-        let hit = "none";
-        if (currentAngle < -10) hit = "A";
-        else if (currentAngle > 10) hit = "C";
-        else hit = "B";
 
-        // 替換圖片為命中圖或錯誤圖
-        setTimeout(() => {
-            if (hit === correct) {
-                document.getElementById(`opt${hit}`).src = `images/${hit}_hit.png?${Date.now()}`;
-                document.getElementById("sfx-hit").play();  // ✅ 播放在這裡
-            } else {
-                document.getElementById(`opt${hit}`).src = `images/${hit}_miss.png?${Date.now()}`;
-                document.getElementById("sfx-miss").play(); // ✅ 播放在這裡
-            }
-            const hitImg = document.getElementById(`opt${hit}`);
-            hitImg.classList.add("explode-hit");
-            setTimeout(() => hitImg.classList.remove("explode-hit"), 500);
-
-        }, 800);
+        const wrapper = document.getElementById("arrow-wrapper");
         const arrow = document.getElementById("flying-arrow");
-        const rad = currentAngle * Math.PI / 180;
-        const distance = window.innerHeight * 0.8;
-        const offsetX = Math.sin(rad) * distance;
-        const offsetY = Math.cos(rad) * distance;
+        const target = document.getElementById(`opt${hit}`);
+        const rect = target.getBoundingClientRect();
 
-        arrow.style.transition = "none";
-        arrow.style.bottom = "5vh";
-        arrow.style.left = "50%";
+        const screenCenterX = window.innerWidth / 2;
+        const screenBottomY = window.innerHeight * 0.95;
+
+        const targetCenterX = rect.left + rect.width / 2;
+        const targetCenterY = rect.top + rect.height / 2;
+
+        const deltaX = targetCenterX - screenCenterX;
+        const deltaY = targetCenterY - screenBottomY;
+
+        const angle = Math.atan2(deltaY, deltaX) * 180 / Math.PI;
+
+        // 初始化位置與角度
+        wrapper.style.transition = "none";
+        wrapper.style.bottom = "5vh";
+        wrapper.style.left = "50%";
+        wrapper.style.transform = "translateX(-50%)";
+
         arrow.style.display = "block";
-        arrow.style.transform = `translateX(-50%) rotate(${currentAngle}deg)`;
+        arrow.style.transition = "none"; // 🚫 不要 rotate 動畫
+        arrow.style.transform = `rotate(${angle + 90}deg)`;
 
-        void arrow.offsetWidth;
+        void arrow.offsetWidth; // 觸發重繪
 
-        arrow.style.transition = "bottom 1.5s ease, left 1.5s ease";
-        arrow.style.bottom = `calc(5vh + ${offsetY}px)`;
-        arrow.style.left = `calc(50% + ${offsetX}px)`;
+        // 執行飛行動畫（位移）
+        wrapper.style.transition = "bottom 1.5s ease, left 1.5s ease";
+        wrapper.style.left = `${targetCenterX}px`;
+        wrapper.style.bottom = `${window.innerHeight - targetCenterY}px`;
 
+        // 命中判定
         setTimeout(() => {
             arrow.style.display = "none";
-            arrow.style.left = "50%";
-            arrow.style.bottom = "5vh";
-
             if (hit === correct) {
+                document.getElementById(`opt${hit}`).src = `images/${hit}_hit.png?${Date.now()}`;
+                document.getElementById("sfx-hit").play();
                 showToast("🎯 答對了！");
                 setTimeout(() => {
                     currentQuestion++;
@@ -315,13 +331,20 @@
                         loadQuestion();
                     } else {
                         showToast("🌟 你已完成所有題目！");
+                        window.location.href = 'gameover.html';
                     }
-                }, 3000); // 換圖完過 1 秒再換題目
+                }, 2500);
             } else {
+                document.getElementById(`opt${hit}`).src = `images/${hit}_miss.png?${Date.now()}`;
+                document.getElementById("sfx-miss").play();
                 showToast("😅 沒中，再試一次！");
             }
-        }, 800);
+        }, 1500);
     }
+
+
+
+
 
     function rotateArrow() {
         const arrow = document.getElementById("arrow");
