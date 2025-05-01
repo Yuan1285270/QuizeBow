@@ -184,6 +184,19 @@
                 transform: translate(-50%, -50%) scale(1);
             }
         }
+        @keyframes missEffect {
+            0%   { transform: translateX(0); }
+            20%  { transform: translateX(-5px); }
+            40%  { transform: translateX(5px); }
+            60%  { transform: translateX(-5px); }
+            80%  { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        .miss-effect {
+            animation: missEffect 0.5s ease;
+        }
+
 
     </style>
 </head>
@@ -294,7 +307,7 @@
         const screenBottomY = window.innerHeight * 0.95;
 
         const targetCenterX = rect.left + rect.width / 2;
-        const targetCenterY = rect.top + rect.height / 2;
+        const targetCenterY = rect.top + rect.height / 2 +150;
 
         const deltaX = targetCenterX - screenCenterX;
         const deltaY = targetCenterY - screenBottomY;
@@ -314,7 +327,7 @@
         void arrow.offsetWidth; // 觸發重繪
 
         // 執行飛行動畫（位移）
-        wrapper.style.transition = "bottom 1.5s ease, left 1.5s ease";
+        wrapper.style.transition = "bottom 1.2s ease, left 1.2s ease";
         wrapper.style.left = `${targetCenterX}px`;
         wrapper.style.bottom = `${window.innerHeight - targetCenterY}px`;
 
@@ -322,10 +335,23 @@
         setTimeout(() => {
             arrow.style.display = "none";
             if (hit === correct) {
-                document.getElementById(`opt${hit}`).src = `images/${hit}_hit.png?${Date.now()}`;
+                const targetImg = document.getElementById(`opt${hit}`);
+
+                // ✅ 觸發動畫
+                targetImg.classList.remove("explode-hit");
+                void targetImg.offsetWidth;
+                targetImg.classList.add("explode-hit");
+
+                // ✅ 換圖片
+                targetImg.src = `images/${hit}_hit.png?${Date.now()}`;
+
+                // ✅ 播音效＋顯示提示
                 document.getElementById("sfx-hit").play();
                 showToast("🎯 答對了！");
+
+                // ✅ 下一題或結束
                 setTimeout(() => {
+                    targetImg.classList.remove("explode-hit");
                     currentQuestion++;
                     if (currentQuestion < questions.length) {
                         loadQuestion();
@@ -334,12 +360,27 @@
                         window.location.href = 'gameover.html';
                     }
                 }, 2500);
-            } else {
-                document.getElementById(`opt${hit}`).src = `images/${hit}_miss.png?${Date.now()}`;
+
+        } else {
+                const targetImg = document.getElementById(`opt${hit}`);
+
+// ✅ 錯誤動畫
+                targetImg.classList.remove("miss-effect");
+                void targetImg.offsetWidth;
+                targetImg.classList.add("miss-effect");
+
+// ✅ 換錯誤圖片
+                targetImg.src = `images/${hit}_miss.png?${Date.now()}`;
                 document.getElementById("sfx-miss").play();
                 showToast("😅 沒中，再試一次！");
+
+// ✅ 清除動畫 class，避免下次不觸發
+                setTimeout(() => {
+                    targetImg.classList.remove("miss-effect");
+                }, 600);
+
             }
-        }, 1500);
+        }, 1000);
     }
 
 
