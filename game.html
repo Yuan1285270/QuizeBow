@@ -24,6 +24,18 @@
             background-position: center center; /* 置中 */
             background-repeat: no-repeat; /* 不要重複 */
         }
+        #toggle-bgm {
+            position: fixed;
+            top: 10%;
+            right: 2vw;
+            transform: translateY(-50%);
+            z-index: 9999;
+            padding: 1vh 2vw;
+            background-color: rgba(255, 255, 255, 0.8);
+            color: #52087D;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
 
         .options {
             display: flex;
@@ -141,6 +153,8 @@
             animation: toastPulse 0.5s ease-in-out forwards;
         }
 
+
+
         #arrow-wrapper {
             position: absolute;
             bottom: 5vh;
@@ -201,6 +215,7 @@
     </style>
 </head>
 <body>
+<button id="toggle-bgm" class="shoot-btn" onclick="toggleBGM()">🔊 關閉音樂</button>
 
 <div class="options">
     <div class="option"><img src="images/A.png" id="optA" onclick="shoot('A')"></div>
@@ -428,6 +443,18 @@
         }, 3000);
     }
 
+    function toggleBGM() {
+        const bgm = document.getElementById("bgm");
+        const btn = document.getElementById("toggle-bgm");
+
+        if (bgm.paused) {
+            bgm.play();
+            btn.innerText = "🔊 關閉音樂";
+        } else {
+            bgm.pause();
+            btn.innerText = "🔈 開啟音樂";
+        }
+    }
 </script>
 
 </body>
